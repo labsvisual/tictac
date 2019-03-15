@@ -33,7 +33,7 @@ function getRowBoxes( colIndex ) {
     for ( let rowIndex = 0; rowIndex < GRID_LENGTH; rowIndex++ ) {
 
         const additionalClass = ( colIndex + rowIndex ) % 2 === 0 ? 'light-background' : 'dark-background';
-        const boxValue = grid[ colIndex ][ rowIndex ];
+        const boxValue = grid[ rowIndex ][ colIndex ];
 
         const content = `<span class="cross">${
             boxValue === 0 ? 'X' :
@@ -92,7 +92,7 @@ function onBoxClick() {
 
     let newValue = 0;
 
-    grid[colIndex][rowIndex] = newValue;
+    grid[ rowIndex ][ colIndex ] = newValue;
     renderMainGrid();
 
     // Possible memory leak if you don't remove
