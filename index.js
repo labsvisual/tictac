@@ -18,7 +18,22 @@
 */
 
 const GRID_LENGTH = 3;
-const grid = new Array( GRID_LENGTH ).fill( -1 ).map( el => new Array( GRID_LENGTH ).fill( -1 ) );
+const generateGrid = () => new Array( GRID_LENGTH ).fill( -1 ).map( el => new Array( GRID_LENGTH ).fill( -1 ) );
+
+let grid = generateGrid();
+
+function reset() {
+
+    grid = generateGrid();
+    const doc = document.getElementById( 'grid' );
+    const child = doc.childNodes[ 0 ];
+
+    doc.removeChild( child );
+
+    renderMainGrid();
+    addClickHandlers();
+
+}
 
 function getRowBoxes( colIndex ) {
 
@@ -77,10 +92,10 @@ function renderMainGrid() {
     if ( innerGrid ) {
 
         innerGrid.removeEventListener( 'click', onBoxClick );
+        parent.removeChild( innerGrid );
 
     }
 
-    parent.removeChild( innerGrid || null );
     parent.appendChild( columnsNode );
 
 }
@@ -163,6 +178,35 @@ function checkWin() {
 
 }
 
+function playComputer() {
+
+    // MDN -
+    const randomMove = () => Math.floor( Math.random() * Math.floor( 2 ) );
+
+    let row = randomMove();
+    let col = randomMove();
+
+    while ( !isValidMove( row, col ) && grid[ row ][ col ] !== 0 ) {
+
+        row = randomMove();
+        col = randomMove();
+
+    }
+
+    grid[ row ][ col ] = 1;
+
+    currentMoves++;
+    currentMoveSet.push( [ row, col ] );
+
+    if ( checkWin() === 1 ) {
+
+        alert( 'The computer won! The game will now reload.' );
+        window.location.reload();
+
+    }
+
+}
+
 function onBoxClick() {
 
     const rowIndex = this.getAttribute( 'data-row-index' );
@@ -181,6 +225,8 @@ function onBoxClick() {
             window.location.reload();
 
         }
+
+        playComputer();
 
         renderMainGrid();
 
@@ -203,7 +249,15 @@ function addClickHandlers() {
 
     Array.from( document.getElementsByClassName( 'box' ) ).forEach( el => {
 
-        el.addEventListener( 'click', onBoxClick );
+        const row = el.getAttribute( 'data-row-index' );
+        const col = el.getAttribute( 'data-col-index' );
+
+        if ( isValidMove( row, col ) ) {
+
+            el.removeEventListener( 'click', onBoxClick );
+            el.addEventListener( 'click', onBoxClick, false );
+
+        }
 
     } );
 
