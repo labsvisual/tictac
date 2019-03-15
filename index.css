@@ -1,31 +1,31 @@
-.parentTop{
+.parent-top {
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.gridTop{
-    border-color: "#f44336";
-    border: '1px solid red';
+.grid-top {
+    border-color: #f44336;
+    border: 1px solid red;
     display: flex;
     flex-direction: column;
 }
 
-.lightBackground {
-    background-color: 00FFFF
+.light-background {
+    background-color: 00FFFF;
 }
 
-.columnsStyle {
+.columns-style {
     display: flex;
     flex-direction: column;
 }
 
-.rowStyle {
+.row-style {
     display: flex;
 }
 
-.darkBackground {
-    background-color: F0FFFF
+.dark-background {
+    background-color: F0FFFF;
 }
 
 .box {
@@ -44,7 +44,7 @@
     margin-bottom: 100px;
 }
 
-.cross{
+.cross {
     color: #f90;
     font-size: 2.5em;
     border-radius: 5px;
