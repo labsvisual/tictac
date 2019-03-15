@@ -85,22 +85,121 @@ function renderMainGrid() {
 
 }
 
+let currentMoves = 0;
+const currentMoveSet = [];
+
+function isValidMove( row, col ) {
+
+    for ( let i = 0; i < currentMoveSet.length; i++ ) {
+
+        const [ rowInSet, colInSet ] = currentMoveSet[ i ];
+        if ( rowInSet === row && colInSet === col ) {
+
+            return false;
+
+        }
+
+    }
+
+    return true;
+
+}
+//  R,C
+// (0,0) (0,1) (0,2)
+// (1,0) (1,1) (1,2)
+// (2,0) (2,1) (2,2)
+
+function checkWin() {
+
+    console.clear();
+
+    const winningMatrix = [
+
+        // Horizontals
+        [ [ 0, 0 ], [ 0, 1 ], [ 0, 2 ] ],
+        [ [ 1, 0 ], [ 1, 1 ], [ 1, 2 ] ],
+        [ [ 2, 0 ], [ 2, 1 ], [ 2, 2 ] ],
+
+        // Verticals
+        [ [ 0, 0 ], [ 1, 0 ], [ 2, 0 ] ],
+        [ [ 0, 1 ], [ 1, 1 ], [ 2, 1 ] ],
+        [ [ 0, 2 ], [ 1, 2 ], [ 2, 2 ] ],
+
+        // Diagonals
+        [ [ 0, 0 ], [ 1, 1 ], [ 2, 2 ] ],
+        [ [ 0, 2 ], [ 1, 1 ], [ 2, 0 ] ]
+
+    ];
+
+    let winner = -1;
+    [ 0, 1 ].forEach( player => {
+
+        winningMatrix.forEach( matrix => {
+
+            let didWin = true;
+
+            matrix.forEach( ( [ row, col ] ) => {
+
+                console.log( 'Checking at row %d, col %d', row, col );
+                didWin &= grid[ row ][ col ] === player;
+                console.log( 'For player %d, (%s)', player, !!didWin );
+                console.log( 'Looking for %s but got %s', player, grid[ row ][ col ] );
+                console.log( '\r\n' );
+
+            } );
+
+            if ( didWin ) {
+
+                winner = player;
+                return;
+
+            }
+
+        } );
+
+    } );
+
+    return winner;
+
+}
+
 function onBoxClick() {
 
     const rowIndex = this.getAttribute( 'data-row-index' );
     const colIndex = this.getAttribute( 'data-col-index' );
 
-    let newValue = 0;
+    if ( isValidMove( rowIndex, colIndex ) ) {
 
-    grid[ rowIndex ][ colIndex ] = newValue;
-    renderMainGrid();
+        grid[ rowIndex ][ colIndex ] = 0;
 
-    // Possible memory leak if you don't remove
-    // the reference to the child node.
-    addClickHandlers();
+        currentMoves++;
+        currentMoveSet.push( [ rowIndex, colIndex ] );
+
+        if ( checkWin() === 0 ) {
+
+            alert( 'You won! The game will now reload.' );
+            window.location.reload();
+
+        }
+
+        renderMainGrid();
+
+        // Possible memory leak if you don't remove
+        // the reference to the child node.
+        addClickHandlers();
+
+    }
+
 }
 
 function addClickHandlers() {
+
+    if ( currentMoves === 9 ) {
+
+        alert( 'No one won! The game will reload.' );
+        window.location.reload();
+
+    }
 
     Array.from( document.getElementsByClassName( 'box' ) ).forEach( el => {
 
