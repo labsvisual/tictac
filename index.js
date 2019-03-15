@@ -18,7 +18,22 @@
 */
 
 const GRID_LENGTH = 3;
-const grid = new Array( GRID_LENGTH ).fill( -1 ).map( el => new Array( GRID_LENGTH ).fill( -1 ) );
+const generateGrid = () => new Array( GRID_LENGTH ).fill( -1 ).map( el => new Array( GRID_LENGTH ).fill( -1 ) );
+
+let grid = generateGrid();
+
+function reset() {
+
+    grid = generateGrid();
+    const doc = document.getElementById( 'grid' );
+    const child = doc.childNodes[ 0 ];
+
+    doc.removeChild( child );
+
+    renderMainGrid();
+    addClickHandlers();
+
+}
 
 function getRowBoxes( colIndex ) {
 
@@ -33,7 +48,7 @@ function getRowBoxes( colIndex ) {
     for ( let rowIndex = 0; rowIndex < GRID_LENGTH; rowIndex++ ) {
 
         const additionalClass = ( colIndex + rowIndex ) % 2 === 0 ? 'light-background' : 'dark-background';
-        const boxValue = grid[ colIndex ][ rowIndex ];
+        const boxValue = grid[ rowIndex ][ colIndex ];
 
         const content = `<span class="cross">${
             boxValue === 0 ? 'X' :
@@ -77,11 +92,118 @@ function renderMainGrid() {
     if ( innerGrid ) {
 
         innerGrid.removeEventListener( 'click', onBoxClick );
+        parent.removeChild( innerGrid );
 
     }
 
-    parent.removeChild( innerGrid || null );
     parent.appendChild( columnsNode );
+
+}
+
+let currentMoves = 0;
+const currentMoveSet = [];
+
+function isValidMove( row, col ) {
+
+    for ( let i = 0; i < currentMoveSet.length; i++ ) {
+
+        const [ rowInSet, colInSet ] = currentMoveSet[ i ];
+        if ( rowInSet === row && colInSet === col ) {
+
+            return false;
+
+        }
+
+    }
+
+    return true;
+
+}
+//  R,C
+// (0,0) (0,1) (0,2)
+// (1,0) (1,1) (1,2)
+// (2,0) (2,1) (2,2)
+
+function checkWin() {
+
+    console.clear();
+
+    const winningMatrix = [
+
+        // Horizontals
+        [ [ 0, 0 ], [ 0, 1 ], [ 0, 2 ] ],
+        [ [ 1, 0 ], [ 1, 1 ], [ 1, 2 ] ],
+        [ [ 2, 0 ], [ 2, 1 ], [ 2, 2 ] ],
+
+        // Verticals
+        [ [ 0, 0 ], [ 1, 0 ], [ 2, 0 ] ],
+        [ [ 0, 1 ], [ 1, 1 ], [ 2, 1 ] ],
+        [ [ 0, 2 ], [ 1, 2 ], [ 2, 2 ] ],
+
+        // Diagonals
+        [ [ 0, 0 ], [ 1, 1 ], [ 2, 2 ] ],
+        [ [ 0, 2 ], [ 1, 1 ], [ 2, 0 ] ]
+
+    ];
+
+    let winner = -1;
+    [ 0, 1 ].forEach( player => {
+
+        winningMatrix.forEach( matrix => {
+
+            let didWin = true;
+
+            matrix.forEach( ( [ row, col ] ) => {
+
+                console.log( 'Checking at row %d, col %d', row, col );
+                didWin &= grid[ row ][ col ] === player;
+                console.log( 'For player %d, (%s)', player, !!didWin );
+                console.log( 'Looking for %s but got %s', player, grid[ row ][ col ] );
+                console.log( '\r\n' );
+
+            } );
+
+            if ( didWin ) {
+
+                winner = player;
+                return;
+
+            }
+
+        } );
+
+    } );
+
+    return winner;
+
+}
+
+function playComputer() {
+
+    // MDN -
+    const randomMove = () => Math.floor( Math.random() * Math.floor( 2 ) );
+
+    let row = randomMove();
+    let col = randomMove();
+
+    while ( !isValidMove( row, col ) && grid[ row ][ col ] !== 0 ) {
+
+        row = randomMove();
+        col = randomMove();
+
+    }
+
+    grid[ row ][ col ] = 1;
+
+    currentMoves++;
+    currentMoveSet.push( [ row, col ] );
+
+    if ( checkWin() === 1 ) {
+
+        alert( 'The computer won! The game will now reload.' );
+        window.location.reload();
+
+    }
 
 }
 
@@ -90,21 +212,52 @@ function onBoxClick() {
     const rowIndex = this.getAttribute( 'data-row-index' );
     const colIndex = this.getAttribute( 'data-col-index' );
 
-    let newValue = 0;
+    if ( isValidMove( rowIndex, colIndex ) ) {
 
-    grid[colIndex][rowIndex] = newValue;
-    renderMainGrid();
+        grid[ rowIndex ][ colIndex ] = 0;
 
-    // Possible memory leak if you don't remove
-    // the reference to the child node.
-    addClickHandlers();
+        currentMoves++;
+        currentMoveSet.push( [ rowIndex, colIndex ] );
+
+        if ( checkWin() === 0 ) {
+
+            alert( 'You won! The game will now reload.' );
+            window.location.reload();
+
+        }
+
+        playComputer();
+
+        renderMainGrid();
+
+        // Possible memory leak if you don't remove
+        // the reference to the child node.
+        addClickHandlers();
+
+    }
+
 }
 
 function addClickHandlers() {
 
+    if ( currentMoves === 9 ) {
+
+        alert( 'No one won! The game will reload.' );
+        window.location.reload();
+
+    }
+
     Array.from( document.getElementsByClassName( 'box' ) ).forEach( el => {
 
-        el.addEventListener( 'click', onBoxClick );
+        const row = el.getAttribute( 'data-row-index' );
+        const col = el.getAttribute( 'data-col-index' );
+
+        if ( isValidMove( row, col ) ) {
+
+            el.removeEventListener( 'click', onBoxClick );
+            el.addEventListener( 'click', onBoxClick, false );
+
+        }
 
     } );
 
