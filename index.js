@@ -119,32 +119,58 @@ function isValidMove( row, col ) {
     return true;
 
 }
-//  R,C
-// (0,0) (0,1) (0,2)
-// (1,0) (1,1) (1,2)
-// (2,0) (2,1) (2,2)
+
+const winningMatrix = ( function generateWinningMatrix() {
+
+    const winningMatrix = [];
+    const diagonalChoices = { diagonal: [], antidiagonal: [] };
+
+    for ( let row = 0; row < GRID_LENGTH; row++ ) {
+
+        const horizontalChoices = [];
+        const verticalChoices = [];
+
+        for ( let col = 0; col < GRID_LENGTH; col++ ) {
+
+            horizontalChoices.push( [ row, col ] );
+            verticalChoices.push( [ col, row ] );
+
+            // [ 0, 0 ], [ 1, 1 ], [ 2, 2 ]...
+            if ( row === col ) {
+
+                diagonalChoices.diagonal.push( [ row, col ] );
+
+            }
+
+            /**
+             * (0,0) (0,1) (0,2) -> Sum of antidiagonal incides = 2 + 0 = 2 [ GRID_LENGTH - 1 ]
+             * (1,0) (1,1) (1,2) -> Sum of antidiagonal indices = 1 + 1 = 2 [ GRID_LENGTH - 1 ]
+             * (2,0) (2,1) (2,2) -> Sum of antidiagonal indices = 2 + 0 = 2 [ GRID_LENGTH - 1 ]
+             *
+             * I had previously used this algorithm in one of my papers on a secret-sharing
+             * scheme.
+             */
+            if ( ( row + col ) === GRID_LENGTH - 1 ) {
+
+                diagonalChoices.antidiagonal.push( [ row, col ] );
+
+            }
+
+        }
+
+        winningMatrix.push( horizontalChoices );
+        winningMatrix.push( verticalChoices );
+
+    }
+
+    winningMatrix.push( diagonalChoices.diagonal );
+    winningMatrix.push( diagonalChoices.antidiagonal );
+
+    return winningMatrix;
+
+} )();
 
 function checkWin() {
-
-    console.clear();
-
-    const winningMatrix = [
-
-        // Horizontals
-        [ [ 0, 0 ], [ 0, 1 ], [ 0, 2 ] ],
-        [ [ 1, 0 ], [ 1, 1 ], [ 1, 2 ] ],
-        [ [ 2, 0 ], [ 2, 1 ], [ 2, 2 ] ],
-
-        // Verticals
-        [ [ 0, 0 ], [ 1, 0 ], [ 2, 0 ] ],
-        [ [ 0, 1 ], [ 1, 1 ], [ 2, 1 ] ],
-        [ [ 0, 2 ], [ 1, 2 ], [ 2, 2 ] ],
-
-        // Diagonals
-        [ [ 0, 0 ], [ 1, 1 ], [ 2, 2 ] ],
-        [ [ 0, 2 ], [ 1, 1 ], [ 2, 0 ] ]
-
-    ];
 
     let winner = -1;
     [ 0, 1 ].forEach( player => {
@@ -155,11 +181,7 @@ function checkWin() {
 
             matrix.forEach( ( [ row, col ] ) => {
 
-                console.log( 'Checking at row %d, col %d', row, col );
                 didWin &= grid[ row ][ col ] === player;
-                console.log( 'For player %d, (%s)', player, !!didWin );
-                console.log( 'Looking for %s but got %s', player, grid[ row ][ col ] );
-                console.log( '\r\n' );
 
             } );
 
@@ -219,7 +241,7 @@ function onBoxClick() {
         currentMoves++;
         currentMoveSet.push( [ rowIndex, colIndex ] );
 
-        if ( checkWin() === 0 ) {
+        if ( !checkWin() ) {
 
             alert( 'You won! The game will now reload.' );
             window.location.reload();
@@ -240,7 +262,7 @@ function onBoxClick() {
 
 function addClickHandlers() {
 
-    if ( currentMoves === 9 ) {
+    if ( currentMoves === ( GRID_LENGTH * GRID_LENGTH ) ) {
 
         alert( 'No one won! The game will reload.' );
         window.location.reload();
